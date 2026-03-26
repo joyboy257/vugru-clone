@@ -6,6 +6,7 @@ import { PhotoUploader } from '@/components/editor/PhotoUploader';
 import { ClipGrid, type Clip } from '@/components/editor/ClipGrid';
 import { AutoEditTab } from '@/components/editor/AutoEditTab';
 import { Button } from '@/components/ui/Button';
+import { InlineEdit } from '@/components/InlineEdit';
 import { ArrowLeft, Wand2, Sparkles, Film } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -45,11 +46,13 @@ export default function ProjectEditorClient({
   photos: initialPhotos,
   clips: initialClips,
   autoEdits: initialAutoEdits,
+  onProjectUpdated,
 }: {
   project: Project;
   photos: Photo[];
   clips: Clip[];
   autoEdits: AutoEdit[];
+  onProjectUpdated?: (project: Project) => void;
 }) {
   const [project, setProject] = useState(initialProject);
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
@@ -173,6 +176,26 @@ export default function ProjectEditorClient({
     }
   }, [project.id]);
 
+  const handleRename = useCallback(async (newName: string) => {
+    const res = await fetch(`/api/projects/${project.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ name: newName }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      toast.error(err.error || 'Failed to rename project');
+      throw new Error(err.error);
+    }
+
+    const { project: updated } = await res.json();
+    setProject(updated);
+    onProjectUpdated?.(updated);
+    toast.success('Project renamed');
+  }, [project.id, onProjectUpdated]);
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -181,7 +204,14 @@ export default function ProjectEditorClient({
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1 min-w-0">
-          <h1 className="font-semibold text-slate-200 truncate">{project.name}</h1>
+          <InlineEdit
+            value={project.name}
+            onSave={handleRename}
+            textClassName="font-semibold text-slate-200 truncate"
+            className="w-full"
+            inputClassName="w-full min-w-0"
+            iconSize={16}
+          />
         </div>
 
         {/* Tab nav */}

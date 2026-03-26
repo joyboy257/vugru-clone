@@ -26,7 +26,7 @@ export default async function ProjectEditorPage({ params }: { params: { id: stri
     .limit(1);
 
   if (!project || project.userId !== payload.userId) {
-    redirect('/ai/dashboard');
+    redirect('/dashboard');
   }
 
   const projectPhotos = await db

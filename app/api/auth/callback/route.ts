@@ -29,11 +29,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Create a response that redirects to dashboard
-  const response = NextResponse.redirect(
-    action === 'signup'
-      ? new URL('/ai/dashboard', request.url)
-      : new URL('/ai/dashboard', request.url)
-  );
+  const response = NextResponse.redirect(new URL('/dashboard', request.url));
 
   // Set session cookie
   response.cookies.set('session_token', token, {
