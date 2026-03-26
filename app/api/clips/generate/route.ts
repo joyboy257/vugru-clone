@@ -5,11 +5,12 @@ import { verifyToken, deductCredits } from '@/lib/db/auth';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { getClipCost } from '@/lib/credits';
+import { enqueueClipJob } from '../../../../workers/video-render/src/queue';
 
 export const runtime = 'nodejs';
 
 function getUserId(req: NextRequest): string | null {
-  const token = req.cookies.get('session_token')?.value || req.cookies.get('dev_token')?.value;
+  const token=req.cookies.get('session_token')?.value || req.cookies.get('dev_token')?.value;
   if (!token) return null;
   const payload = verifyToken(token);
   return payload?.userId ?? null;
@@ -63,8 +64,17 @@ export async function POST(req: NextRequest) {
     .set({ clipCount: project.clipCount + 1, updatedAt: new Date() })
     .where(eq(projects.id, project.id));
 
-  // TODO: Enqueue job to GPU worker (BullMQ / inngest / or just poll)
-  // For now, the worker will pick it up from the DB
+  // Enqueue to GPU worker
+  await enqueueClipJob({
+    clipId: clip.id,
+    projectId: project.id,
+    photoId: clip.photoId,
+    photoStorageKey: photo.storageKey,
+    motionStyle: clip.motionStyle as 'push-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'custom',
+    customPrompt: clip.customPrompt,
+    resolution: clip.resolution as '720p' | '1080p' | '4k',
+    userId,
+  });
 
   return NextResponse.json({ clip }, { status: 201 });
 }

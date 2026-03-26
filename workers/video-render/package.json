@@ -1,0 +1,30 @@
+{
+  "name": "propframe-video-worker",
+  "version": "1.0.0",
+  "description": "GPU worker for PropFrame clip generation",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.540.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
+    "bullmq": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.3.2",
+    "node-fetch": "^3.3.2",
+    "replicate": "^0.29.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
