@@ -1,4 +1,4 @@
--- FrameForge Database Schema Migration
+-- PropFrame Database Schema Migration
 -- Railway PostgreSQL
 
 BEGIN;

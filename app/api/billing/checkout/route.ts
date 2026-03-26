@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
           currency: 'usd',
           product_data: {
             name: `${credits.toLocaleString()} Credits`,
-            description: `Add ${credits.toLocaleString()} credits to your FrameForge account`,
+            description: `Add ${credits.toLocaleString()} credits to your PropFrame account`,
           },
           unit_amount: Math.round(dollars * 100), // cents
         },

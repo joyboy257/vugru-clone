@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Log in — FrameForge',
-  description: 'Log in to your FrameForge account.',
+  title: 'Log in — PropFrame',
+  description: 'Log in to your PropFrame account.',
 };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <rect x="9" y="11" width="10" height="6" rx="1" fill="#3B82F6"/>
               <circle cx="14" cy="14" r="1.5" fill="white"/>
             </svg>
-            <span className="text-xl font-semibold text-white">FrameForge</span>
+            <span className="text-xl font-semibold text-white">PropFrame</span>
           </a>
         </div>
         {children}

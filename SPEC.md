@@ -2,7 +2,7 @@
 
 ## 1. Concept & Vision
 
-**Working Name:** FrameForge (placeholder — pick better name)
+**Name:** PropFrame
 
 AI-powered real estate video generation from listing photos. Upload photos, get cinematic Ken Burns video clips, auto-assembled walkthroughs with AI music and titles. No camera gear, no editing software, no design skills required.
 

@@ -23,7 +23,7 @@ export default async function ProjectLayout({ children }: { children: React.Reac
             <rect x="9" y="11" width="10" height="6" rx="1" fill="#3B82F6"/>
             <circle cx="14" cy="14" r="1.5" fill="white"/>
           </svg>
-          <span className="font-semibold text-white text-sm">FrameForge</span>
+          <span className="font-semibold text-white text-sm">PropFrame</span>
         </a>
 
         <div className="flex-1" />

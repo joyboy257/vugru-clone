@@ -16,7 +16,7 @@ export default function LandingFooter() {
                 <rect x="9" y="11" width="10" height="6" rx="1" fill="#3B82F6" />
                 <circle cx="14" cy="14" r="1.5" fill="white" />
               </svg>
-              <span className="text-sm font-semibold text-white">FrameForge</span>
+              <span className="text-sm font-semibold text-white">PropFrame</span>
             </Link>
             <p className="text-xs text-slate-500 leading-relaxed">
               AI-powered real estate video generation. Transform listing photos into cinematic marketing videos.
@@ -54,7 +54,7 @@ export default function LandingFooter() {
 
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-600">
-            &copy; {currentYear} FrameForge. All rights reserved.
+            &copy; {currentYear} PropFrame. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="https://twitter.com" className="text-slate-600 hover:text-slate-400 transition-colors" target="_blank" rel="noopener noreferrer">

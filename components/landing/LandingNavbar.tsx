@@ -14,7 +14,7 @@ export default function LandingNavbar() {
               <rect x="9" y="11" width="10" height="6" rx="1" fill="#3B82F6" />
               <circle cx="14" cy="14" r="1.5" fill="white" />
             </svg>
-            <span className="text-lg font-semibold text-white tracking-tight">FrameForge</span>
+            <span className="text-lg font-semibold text-white tracking-tight">PropFrame</span>
           </Link>
 
           {/* Nav links */}

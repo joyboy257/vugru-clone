@@ -13,7 +13,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'FrameForge — AI Real Estate Video from Photos',
+  title: 'PropFrame — AI Real Estate Video from Photos',
   description: 'Transform listing photos into cinematic video walkthroughs in minutes. No camera gear. No editing software.',
   icons: {
     icon: '/favicon.svg',
