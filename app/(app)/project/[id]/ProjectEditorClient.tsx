@@ -8,6 +8,7 @@ import { AutoEditTab } from '@/components/editor/AutoEditTab';
 import { Button } from '@/components/ui/Button';
 import { InlineEdit } from '@/components/InlineEdit';
 import { SortablePhotoGrid } from '@/components/editor/SortablePhotoGrid';
+import { VirtualStageModal } from '@/components/editor/VirtualStageModal';
 import { ArrowLeft, Wand2, Sparkles, Film, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -63,7 +64,19 @@ export default function ProjectEditorClient({
   const [autoEdits, setAutoEdits] = useState<AutoEdit[]>(initialAutoEdits);
   const [generatingCount, setGeneratingCount] = useState(0);
   const [activeTab, setActiveTab] = useState<'photos' | 'clips' | 'edit'>('photos');
+  const [stagingPhoto, setStagingPhoto] = useState<Photo | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchProject = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.project) setProject(data.project);
+      if (data.photos) setPhotos(data.photos);
+      if (data.clips) setClips(data.clips);
+    } catch { /* silent */ }
+  }, [project.id]);
 
   // Poll clip statuses when there are in-flight clips
   useEffect(() => {
@@ -292,7 +305,17 @@ export default function ProjectEditorClient({
                   projectId={project.id}
                   onDeleted={handlePhotoDeleted}
                   onReordered={handlePhotosReordered}
+                  onStageClick={setStagingPhoto}
                 />
+
+                {stagingPhoto && (
+                  <VirtualStageModal
+                    photo={stagingPhoto}
+                    projectId={project.id}
+                    onClose={() => setStagingPhoto(null)}
+                    onStaged={() => { fetchProject(); setStagingPhoto(null); }}
+                  />
+                )}
               </div>
             )}
           </div>

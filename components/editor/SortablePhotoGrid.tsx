@@ -18,7 +18,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { X, GripVertical, Loader2 } from 'lucide-react';
+import { X, GripVertical, Loader2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -36,9 +36,10 @@ interface SortablePhotoProps {
   photo: Photo;
   onDelete: (id: string) => void;
   isDeleting: boolean;
+  onStageClick?: (photo: Photo) => void;
 }
 
-function SortablePhoto({ photo, onDelete, isDeleting }: SortablePhotoProps) {
+function SortablePhoto({ photo, onDelete, isDeleting, onStageClick }: SortablePhotoProps) {
   const {
     attributes,
     listeners,
@@ -73,12 +74,22 @@ function SortablePhoto({ photo, onDelete, isDeleting }: SortablePhotoProps) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10"
       >
         <div className="w-6 h-6 bg-black/60 backdrop-blur-sm rounded flex items-center justify-center">
           <GripVertical className="w-3.5 h-3.5 text-white/80" />
         </div>
       </div>
+
+      {/* Stage button */}
+      {onStageClick && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onStageClick(photo); }}
+          className="absolute top-1.5 left-9 w-6 h-6 bg-black/60 backdrop-blur-sm rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-500 z-10"
+        >
+          <Wand2 className="w-3.5 h-3.5 text-white" />
+        </button>
+      )}
 
       {/* Delete button */}
       <button
@@ -106,6 +117,7 @@ interface SortablePhotoGridProps {
   projectId: string;
   onDeleted: (photoId: string) => void;
   onReordered: (photoIds: string[]) => void;
+  onStageClick?: (photo: Photo) => void;
 }
 
 export function SortablePhotoGrid({
@@ -113,6 +125,7 @@ export function SortablePhotoGrid({
   projectId,
   onDeleted,
   onReordered,
+  onStageClick,
 }: SortablePhotoGridProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -189,6 +202,7 @@ export function SortablePhotoGrid({
               photo={photo}
               onDelete={handleDelete}
               isDeleting={deletingId === photo.id}
+              onStageClick={onStageClick}
             />
           ))}
         </div>
