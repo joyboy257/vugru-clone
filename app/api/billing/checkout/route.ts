@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/db/auth';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { dollarsToCredits } from '@/lib/credits';
+import { dollarsToCredits, getCreditsForDollars } from '@/lib/credits';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
   }
 
-  const credits = dollarsToCredits(dollars);
+  const credits = getCreditsForDollars(dollars);
 
   // Get or create Stripe customer
   const [user] = await db.select().from(users).where(eq(users.id, payload.userId)).limit(1);
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
       },
     ],
     mode: 'payment',
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/ai/billing?success=true&credits=${credits}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/ai/billing?cancelled=true`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true&credits=${credits}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?cancelled=true`,
     metadata: {
       userId: payload.userId,
       credits: credits.toString(),

@@ -31,11 +31,19 @@ export function parseCreditsToDollars(credits: number): number {
 }
 
 export function dollarsToCredits(dollars: number): number {
-  return Math.round(dollars * 100);
+  return Math.round(dollars * 1250); // 1 dollar = 1250 credits
 }
 
 export const CREDIT_PACKAGES = [
-  { credits: 25000, dollars: 20, label: '$20' },
-  { credits: 62500, dollars: 50, label: '$50' },
-  { credits: 130000, dollars: 100, label: '$100' },
+  { credits: 25000,  dollars: 20,  label: '$20',  bonus: 0     },
+  { credits: 62500,  dollars: 50,  label: '$50',  bonus: 12500 },  // extra 12,500 over base rate
+  { credits: 130000, dollars: 100, label: '$100', bonus: 30000 },  // extra 30,000 over base rate
 ] as const;
+
+export function getCreditsForDollars(dollars: number): number {
+  // Base rate: 1 dollar = 1250 credits
+  // Bonus credits are added on top of the base rate
+  const base = dollars * 1250;
+  const pkg = CREDIT_PACKAGES.find(p => p.dollars === dollars);
+  return pkg ? pkg.credits : base;
+}
