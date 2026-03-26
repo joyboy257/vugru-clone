@@ -7,7 +7,8 @@ import { ClipGrid, type Clip } from '@/components/editor/ClipGrid';
 import { AutoEditTab } from '@/components/editor/AutoEditTab';
 import { Button } from '@/components/ui/Button';
 import { InlineEdit } from '@/components/InlineEdit';
-import { ArrowLeft, Wand2, Sparkles, Film } from 'lucide-react';
+import { SortablePhotoGrid } from '@/components/editor/SortablePhotoGrid';
+import { ArrowLeft, Wand2, Sparkles, Film, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Photo {
@@ -37,6 +38,8 @@ export interface AutoEdit {
   status: 'draft' | 'rendering' | 'done' | 'error';
   publicUrl?: string | null;
   storageKey?: string | null;
+  shareToken?: string | null;
+  shareExpiresAt?: string | Date | null;
   cost: number;
   createdAt: string | Date;
 }
@@ -115,6 +118,22 @@ export default function ProjectEditorClient({
       setProject(prev => prev ? { ...prev, thumbnailUrl: photo.publicUrl } : prev);
     }
   }, [photos.length]);
+
+  const handlePhotoDeleted = useCallback((photoId: string) => {
+    setPhotos(prev => prev.filter(p => p.id !== photoId));
+  }, []);
+
+  const handlePhotosReordered = useCallback((newOrder: string[]) => {
+    setPhotos(prev => {
+      const sorted = newOrder
+        .map(id => prev.find(p => p.id === id))
+        .filter(Boolean) as Photo[];
+      // Fill in any missing photos that weren't in the order
+      const orderedIds = new Set(newOrder);
+      const extras = prev.filter(p => !orderedIds.has(p.id));
+      return [...sorted, ...extras];
+    });
+  }, []);
 
   const handleGenerateClip = useCallback(async (photoId: string, motionStyle: string, resolution: string) => {
     if (generatingCount >= 5) {
@@ -255,20 +274,25 @@ export default function ProjectEditorClient({
                   <h2 className="text-sm font-medium text-slate-400">
                     {photos.length} photo{photos.length !== 1 ? 's' : ''} uploaded
                   </h2>
+                  <button
+                    onClick={() => {
+                      if (!confirm('Remove all photos from this project?')) return;
+                      fetch(`/api/projects/${project.id}/photos`, { method: 'DELETE', credentials: 'include' })
+                        .then(res => { if (!res.ok) throw new Error(); setPhotos([]); })
+                        .catch(() => toast.error('Failed to clear photos'));
+                    }}
+                    className="text-xs text-slate-500 hover:text-red-400 transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Clear all
+                  </button>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="relative aspect-square group">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.publicUrl || ''}
-                        alt={photo.filename}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors rounded-lg" />
-                    </div>
-                  ))}
-                </div>
+                <SortablePhotoGrid
+                  photos={photos}
+                  projectId={project.id}
+                  onDeleted={handlePhotoDeleted}
+                  onReordered={handlePhotosReordered}
+                />
               </div>
             )}
           </div>

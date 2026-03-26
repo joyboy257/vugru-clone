@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { toast } from 'sonner';
 import {
   Sparkles, Music, ChevronUp, ChevronDown, Trash2, Download,
-  Loader2, CheckCircle, Clock, AlertCircle, Film, Plus
+  Loader2, CheckCircle, Clock, AlertCircle, Film, Plus, Share2, Copy, Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +28,8 @@ interface AutoEdit {
   status: 'draft' | 'rendering' | 'done' | 'error';
   publicUrl?: string | null;
   storageKey?: string | null;
+  shareToken?: string | null;
+  shareExpiresAt?: string | Date | null;
   cost: number;
   createdAt: string | Date;
 }
@@ -212,6 +214,76 @@ export function AutoEditTab({ projectId, clips, autoEdits: initialAutoEdits, onA
     .map(id => doneClips.find(c => c.id === id))
     .filter(Boolean) as Clip[];
 
+  // Share button with copy-link + social caption copy support
+  function ShareButton({ autoEdit }: { autoEdit: AutoEdit }) {
+    const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [expiresAt, setExpiresAt] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+    const [captionCopied, setCaptionCopied] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const fetchOrUseShareUrl = async (): Promise<string | null> => {
+      if (shareUrl) return shareUrl;
+
+      const res = await fetch(`/api/auto-edits/${autoEdit.id}/share`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      setShareUrl(data.shareUrl);
+      setExpiresAt(data.expiresAt);
+      return data.shareUrl;
+    };
+
+    const handleShare = async () => {
+      const url = await fetchOrUseShareUrl();
+      await navigator.clipboard.writeText(window.location.origin + url);
+      setCopied(true);
+      toast.success('Link copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleCopyCaption = async () => {
+      const url = await fetchOrUseShareUrl();
+      const fullUrl = window.location.origin + url;
+      const caption = autoEdit.titleText
+        ? `Check out this property video: ${autoEdit.titleText} ${fullUrl}`
+        : `Check out this property video! ${fullUrl}`;
+      await navigator.clipboard.writeText(caption);
+      setCaptionCopied(true);
+      toast.success('Caption copied! Paste it on any social platform.');
+      setTimeout(() => setCaptionCopied(false), 2000);
+    };
+
+    const existingShare = autoEdit.shareToken && autoEdit.shareExpiresAt && new Date(autoEdit.shareExpiresAt) > new Date();
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleShare}
+          loading={loading}
+          className="gap-2"
+        >
+          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+          {copied ? 'Copied!' : 'Share Link'}
+          {existingShare && !shareUrl && <span className="text-xs text-slate-500 ml-1">7d</span>}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleCopyCaption}
+          loading={loading}
+          className="gap-1.5"
+          title="Copy caption with link for social posts"
+        >
+          {captionCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+          {captionCopied ? 'Copied!' : 'Copy Caption'}
+        </Button>
+      </div>
+    );
+  }
+
   const renderContent = () => {
     if (viewState === 'error') {
       return (
@@ -234,17 +306,19 @@ export function AutoEditTab({ projectId, clips, autoEdits: initialAutoEdits, onA
     }
 
     if (viewState === 'done' && currentAutoEdit) {
+      const hasValidShare = currentAutoEdit.shareToken && currentAutoEdit.shareExpiresAt && new Date(currentAutoEdit.shareExpiresAt) > new Date();
       return (
         <div className="text-center py-8">
           <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
           <p className="text-slate-300 font-medium mb-3">Your video is ready!</p>
           {currentAutoEdit.publicUrl ? (
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 flex-wrap">
               <a href={currentAutoEdit.publicUrl} download target="_blank" rel="noopener noreferrer">
                 <Button className="gap-2">
                   <Download className="w-4 h-4" /> Download MP4
                 </Button>
               </a>
+              <ShareButton autoEdit={currentAutoEdit} />
               <Button variant="secondary" onClick={() => setViewState('idle')}>Create Another</Button>
             </div>
           ) : (
@@ -443,11 +517,14 @@ export function AutoEditTab({ projectId, clips, autoEdits: initialAutoEdits, onA
 
                 <div className="flex items-center gap-2 shrink-0">
                   {ae.status === 'done' && ae.publicUrl && (
-                    <a href={ae.publicUrl} download target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="secondary" className="gap-1">
-                        <Download className="w-3.5 h-3.5" /> Download
-                      </Button>
-                    </a>
+                    <>
+                      <ShareButton autoEdit={ae} />
+                      <a href={ae.publicUrl} download target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="secondary" className="gap-1">
+                          <Download className="w-3.5 h-3.5" /> Download
+                        </Button>
+                      </a>
+                    </>
                   )}
                   {ae.status === 'draft' && (
                     <Button

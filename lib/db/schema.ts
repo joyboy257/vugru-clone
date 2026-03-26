@@ -72,6 +72,8 @@ export const autoEdits = pgTable('auto_edits', {
   duration: decimal('duration', { precision: 5, scale: 2 }).notNull().default('0'),
   status: varchar('status', { length: 50 }).notNull().default('draft'), // draft | rendering | done
   cost: integer('cost').notNull().default(1),
+  shareToken: varchar('share_token', { length: 64 }),
+  shareExpiresAt: timestamp('share_expires_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
