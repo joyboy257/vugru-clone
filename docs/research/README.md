@@ -5,6 +5,7 @@ Investigation notes, findings, and decision records.
 ## Contents
 
 - [AI Model Landscape](./models.md) — free tier survey across Groq, Cohere, Together.ai, GitHub Models
+- [Video Generation Platforms](./video-generation-platforms.md) — Remotion, programmatic video, market use cases
 - [Architecture Decisions](./architecture.md) — pending
 
 ## How research works
