@@ -1,12 +1,13 @@
 import { db } from './index';
-import { users, sessions, creditTransactions } from './schema';
-import { eq } from 'drizzle-orm';
+import { users, sessions, creditTransactions, passwordResetTokens } from './schema';
+import { eq, and, lt, isNull } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'dev-secret-change-in-production';
 const SESSION_EXPIRY_DAYS = 7;
+const PASSWORD_RESET_EXPIRY_MINUTES = 5;
 
 export function signToken(userId: string, tokenId: string): string {
   return jwt.sign({ userId, tokenId }, JWT_SECRET, { expiresIn: `${SESSION_EXPIRY_DAYS}d` });
@@ -42,6 +43,26 @@ export async function getUserByEmail(email: string) {
 export async function getUserById(id: string) {
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
   return result[0] || null;
+}
+
+export async function getUserByGoogleId(googleId: string) {
+  const result = await db.select().from(users).where(eq(users.googleId, googleId)).limit(1);
+  return result[0] || null;
+}
+
+export async function createUserFromGoogle(googleId: string, email: string, name?: string) {
+  const [user] = await db
+    .insert(users)
+    .values({ email, name, googleId, googleEmail: email, credits: 1000 })
+    .returning();
+  return user;
+}
+
+export async function linkGoogleAccount(userId: string, googleId: string, googleEmail: string) {
+  await db
+    .update(users)
+    .set({ googleId, googleEmail: googleEmail })
+    .where(eq(users.id, userId));
 }
 
 export async function createSession(userId: string) {
@@ -119,6 +140,51 @@ export async function addCredits(userId: string, amount: number, type: string, r
     referenceId,
     description: `${type} (+${amount} credits)`,
   });
+}
+
+export async function createPasswordResetToken(userId: string): Promise<{ token: string; lookupKey: string }> {
+  const token = nanoid(21);
+  const lookupKey = nanoid(21);
+  const tokenHash = await bcrypt.hash(token, 10);
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MINUTES * 60 * 1000);
+
+  await db.insert(passwordResetTokens).values({ userId, tokenHash, lookupKey, expiresAt });
+
+  return { token, lookupKey };
+}
+
+export async function verifyPasswordResetToken(
+  lookupKey: string,
+  rawToken: string
+): Promise<{ valid: true; userId: string } | { valid: false; reason: string }> {
+  const results = await db
+    .select()
+    .from(passwordResetTokens)
+    .where(and(eq(passwordResetTokens.lookupKey, lookupKey), isNull(passwordResetTokens.usedAt)))
+    .limit(1);
+
+  const record = results[0];
+  if (!record) {
+    return { valid: false, reason: 'Token not found' };
+  }
+
+  if (new Date() > record.expiresAt) {
+    return { valid: false, reason: 'Token expired' };
+  }
+
+  const match = await bcrypt.compare(rawToken, record.tokenHash);
+  if (!match) {
+    return { valid: false, reason: 'Invalid token' };
+  }
+
+  return { valid: true, userId: record.userId };
+}
+
+export async function markPasswordResetTokenUsed(lookupKey: string): Promise<void> {
+  await db
+    .update(passwordResetTokens)
+    .set({ usedAt: new Date() })
+    .where(eq(passwordResetTokens.lookupKey, lookupKey));
 }
 
 export async function authenticate(token: string) {

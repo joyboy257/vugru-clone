@@ -1,12 +1,15 @@
 import 'dotenv/config';
 import { db } from './db.js';
-import { clips, photos, projects } from './schema.js';
+import { clips, photos, projects, users } from './schema.js';
 import { eq, and, inArray } from 'drizzle-orm';
 import { processClipJob } from './clipProcessor.js';
 import { getR2Object, uploadToR2, getPhotoUrl } from './r2.js';
 import { logger } from './logger.js';
+import { sendClipCompleteEmail } from './email.js';
 
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS ?? '3000', 10);
+const CLIP_COMPLETE_EMAIL_ENABLED = process.env.CLIP_COMPLETE_EMAIL_ENABLED !== 'false';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 async function pollAndProcess() {
   try {
@@ -103,6 +106,34 @@ async function processOneClip(clip: typeof clips.$inferSelect) {
       .where(eq(projects.id, clip.projectId));
 
     log.info(`Clip done → ${publicUrl}`);
+
+    // ── 5. Send email notification (if enabled) ────────────────────
+    if (CLIP_COMPLETE_EMAIL_ENABLED) {
+      try {
+        // Fetch user email via clips → projects → users join
+        const [proj] = await db
+          .select({ name: projects.name, userId: projects.userId })
+          .from(projects)
+          .where(eq(projects.id, clip.projectId))
+          .limit(1);
+
+        if (proj) {
+          const [user] = await db
+            .select({ email: users.email })
+            .from(users)
+            .where(eq(users.id, proj.userId))
+            .limit(1);
+
+          if (user?.email) {
+            await sendClipCompleteEmail(user.email, proj.name, `${APP_URL}/project/${clip.projectId}`);
+            logger.clip.info('clip.complete.email_sent', { clipId: clip.id, email: user.email });
+          }
+        }
+      } catch (emailErr) {
+        // Don't fail/retry the job if email fails
+        logger.clip.error('clip.complete.email_failed', { clipId: clip.id, error: String(emailErr) });
+      }
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     log.error(`Clip failed: ${message}`);

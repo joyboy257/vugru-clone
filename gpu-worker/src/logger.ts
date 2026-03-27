@@ -52,13 +52,24 @@ function log(level: LogLevel, msg: string, meta?: unknown): void {
   }
 }
 
+// Named loggers for different event domains
+function makeLogger(domain: string) {
+  return {
+    debug(msg: string, meta?: unknown) { log('debug', `[${domain}] ${msg}`, meta); },
+    info(msg: string, meta?: unknown) { log('info', `[${domain}] ${msg}`, meta); },
+    warn(msg: string, meta?: unknown) { log('warn', `[${domain}] ${msg}`, meta); },
+    error(msg: string, meta?: unknown) { log('error', `[${domain}] ${msg}`, meta); },
+    child(_meta: Record<string, unknown>) { return this; },
+  };
+}
+
 export const logger = {
   debug(msg: string, meta?: unknown) { log('debug', msg, meta); },
   info(msg: string, meta?: unknown) { log('info', msg, meta); },
   warn(msg: string, meta?: unknown) { log('warn', msg, meta); },
   error(msg: string, meta?: unknown) { log('error', msg, meta); },
   child(_meta: Record<string, unknown>) {
-    // Simple placeholder — for production, use pino child logger
     return this;
   },
+  clip: makeLogger('clip'),
 };

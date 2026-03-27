@@ -35,5 +35,20 @@ export async function POST(req: NextRequest) {
     publicUrl: `/api/files/${encodeURIComponent(storageKey)}`,
   }).returning();
 
+  // Set thumbnailUrl if this is the first photo in the project
+  const existingPhotos = await db
+    .select({ id: photos.id })
+    .from(photos)
+    .where(eq(photos.projectId, projectId));
+
+  if (existingPhotos.length === 1) {
+    // First photo — set as thumbnail
+    const photoPublicUrl = photo.publicUrl || `/api/files/${encodeURIComponent(storageKey)}`;
+    await db
+      .update(projects)
+      .set({ thumbnailUrl: photoPublicUrl, updatedAt: new Date() })
+      .where(eq(projects.id, projectId));
+  }
+
   return NextResponse.json({ photo }, { status: 201 });
 }

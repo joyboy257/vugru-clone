@@ -7,6 +7,8 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }),
   passwordHash: text('password_hash'),
+  googleId: varchar('google_id', { length: 255 }),
+  googleEmail: varchar('google_email', { length: 255 }),
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   credits: integer('credits').notNull().default(1000), // 1000 = $10 free
   plan: varchar('plan', { length: 20 }).notNull().default('starter'), // starter | pro | scale
@@ -97,6 +99,17 @@ export const sessions = pgTable('sessions', {
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   tokenHash: varchar('token_hash', { length: 255 }).notNull().unique(),
   expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ─── Password Reset Tokens ─────────────────────────────────────────────────────
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: varchar('token_hash', { length: 255 }).notNull(),
+  lookupKey: varchar('lookup_key', { length: 64 }).notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

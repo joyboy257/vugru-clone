@@ -47,15 +47,16 @@ export function BillingClient({ transactions, usage, userCredits, successCredits
   const router = useRouter();
   const [showBuyModal, setShowBuyModal] = useState(false);
 
-  // Clear URL params after showing success banner
+  // Strip credits_added URL param after showing success toast (using replaceState to avoid page reload)
   useEffect(() => {
     if (successCredits !== null) {
-      const timer = setTimeout(() => {
-        router.refresh();
-      }, 3000);
-      return () => clearTimeout(timer);
+      // Use window.history.replaceState to strip the query param without page reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete('credits_added');
+      url.searchParams.delete('success');
+      window.history.replaceState({}, '', url.pathname + url.search);
     }
-  }, [successCredits, router]);
+  }, [successCredits]);
 
   // Show toast on success
   useEffect(() => {

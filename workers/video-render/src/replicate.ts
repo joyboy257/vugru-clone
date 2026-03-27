@@ -26,6 +26,11 @@ export interface VideoGenResult {
   videoUrl: string; // URL of the generated video from Replicate
 }
 
+// DEPRECATED: This module contains CogVideoX-5B via Replicate.
+// CogVideoX is NOT wired into gpu-worker/src/clipProcessor.ts.
+// Active pipeline: Runway Gen-3 Alpha Turbo (providers/runway.ts) + SVD (providers/svd.ts).
+// This file is kept for reference but should not be used in production.
+
 // Generate video from image using CogVideoX on Replicate
 // CogVideoX-5B is fast (30-60s) and produces good Ken Burns style motion
 export async function generateClipVideo(

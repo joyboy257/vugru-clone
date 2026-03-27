@@ -1,6 +1,10 @@
 /**
- * VideoProvider interface — implemented by Runway, SVD, CogVideoX, etc.
+ * VideoProvider interface — implemented by Runway and SVD.
  * All providers share the same interface so the worker is provider-agnostic.
+ *
+ * NOTE: CogVideoX (via Replicate) existed historically in workers/video-render/src/replicate.ts
+ * but is LEGACY/DEPRECATED — not wired into gpu-worker's clipProcessor.ts.
+ * Active providers are Runway Gen-3 Alpha Turbo (runway) and Stable Video Diffusion (svd).
  */
 import { RunwayProvider } from './runway.js';
 import { SVDProvider } from './svd.js';
