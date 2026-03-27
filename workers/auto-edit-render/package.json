@@ -1,0 +1,33 @@
+{
+  "name": "auto-edit-render",
+  "version": "1.0.0",
+  "description": "Auto-edit render worker for PropFrame — concatenates clips + title overlay + music",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.540.0",
+    "@aws-sdk/s3-request-presigner": "^3.540.0",
+    "bullmq": "^5.4.2",
+    "dotenv": "^16.4.5",
+    "fluent-ffmpeg": "^2.1.2",
+    "ioredis": "^5.3.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/node": "^20.11.30",
+    "@types/pg": "^8.11.4",
+    "typescript": "^5.4.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "notes": {
+    "ffmpeg": "FFmpeg must be installed on the host machine. Install via: apt-get install ffmpeg (Debian/Ubuntu) or brew install ffmpeg (macOS)"
+  }
+}
