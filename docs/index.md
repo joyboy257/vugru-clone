@@ -7,9 +7,11 @@ AI-powered real estate video generation from listing photos. Upload photos, get 
 - [Quickstart](./engineering/setup.md) — local dev setup
 - [Deployment](./engineering/deployment.md) — Railway + R2 + GPU worker
 - [API Reference](./engineering/api-reference.md)
+- [Known Issues](./engineering/known-issues.md) — identified gaps and TODOs in the codebase
 - [AI Model Research](./research/models.md)
 - [Architecture](./research/architecture.md)
 - [Roadmap](./roadmap/v1.md)
+- [Singapore Market Plan](./plans/singapore-market.md) — pilot launch strategy
 
 ## What this is
 
@@ -37,7 +39,7 @@ PropFrame takes a real estate listing's photos and transforms them into marketin
 ## Project structure
 
 ```
-vugru-clone/
+PropFrame/
 ├── app/                  # Next.js App Router pages + API routes
 │   ├── (app)/            # Authenticated app routes
 │   │   ├── dashboard/   # Project grid
